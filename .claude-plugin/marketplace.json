@@ -1,0 +1,22 @@
+{
+  "name": "arabic-formal-writer-marketplace",
+  "owner": {
+    "name": "Karim (Wooinxlkz)",
+    "url": "https://github.com/Wooinxlkz"
+  },
+  "plugins": [
+    {
+      "name": "arabic-formal-writer",
+      "description": "Write and review formal Modern Standard Arabic documents — official letters, CVs, reports, contracts — with correct regional conventions (Gulf, Egyptian, Levantine, Maghrebi) instead of defaulting to one dialect's formal register.",
+      "author": { "name": "Karim (Wooinxlkz)" },
+      "category": "writing",
+      "source": {
+        "source": "github",
+        "repo": "Wooinxlkz/arabic-formal-writer",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/Wooinxlkz/arabic-formal-writer",
+      "license": "MIT"
+    }
+  ]
+}
