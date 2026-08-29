@@ -1,6 +1,6 @@
 ---
 name: arabic-formal-writing
-description: Write, translate, or review formal Modern Standard Arabic (MSA) documents — official/business letters, administrative correspondence, CVs, resumes, cover letters, reports, memos, minutes, and simple contracts/agreements. Make sure to use this skill whenever the user asks for Arabic writing help involving anything official, professional, administrative, academic, or business-related — letters to institutions, government correspondence, job applications, formal emails, reports — even if they don't say "formal" explicitly, and even if the request is in English but the output should be in Arabic. Also use this skill to review or correct existing Arabic formal text for register consistency, calque/translation artifacts, numeral and date-format consistency, and regional-convention correctness (Gulf, Egyptian, Levantine, or Maghrebi/Algerian formal norms). Do NOT use this skill for casual chat, social media captions, or marketing copy in Arabic — that is a different register entirely.
+description: Write, translate, or review formal Modern Standard Arabic (MSA) documents — official/business letters, administrative correspondence, CVs, resumes, cover letters, reports, memos, minutes, and simple contracts/agreements. Make sure to use this skill whenever the user asks for Arabic writing help involving anything official, professional, administrative, academic, or business-related — letters to institutions, government correspondence, job applications, formal emails, reports — even if they don't say "formal" explicitly, and even if the request is in English but the output should be in Arabic. Also use this skill to review or correct existing Arabic formal text for register consistency, calque/translation artifacts, numeral and date-format consistency, and regional-convention correctness (Gulf, Egyptian, Sudanese, Levantine, or Maghrebi/Algerian formal norms, with country-level dialect attribution where verified). Do NOT use this skill for casual chat, social media captions, or marketing copy in Arabic — that is a different register entirely.
 ---
 
 # Arabic Formal Writing
@@ -73,6 +73,7 @@ Give the user:
 
 - `references/document-templates.md` — structure for every supported document type
 - `references/regional-conventions.md` — Gulf/Egyptian/Levantine/Maghrebi conventions: numerals, dates, honorifics, closings
+- `references/saudi-official-correspondence.md` — sourced, government-published conventions for Saudi official correspondence specifically (rank-based closings, exact date format, numeral convention) — more specific and better-cited than the general Gulf notes above where the two differ
 - `references/tone-tiers.md` — the three MSA formality tiers and which documents use which
 - `references/review-checklist.md` — the full manual checklist used by the reviewer agent
 - `references/common-calques.md` — a running list of English/French → bad-Arabic calques to avoid, with correct alternatives

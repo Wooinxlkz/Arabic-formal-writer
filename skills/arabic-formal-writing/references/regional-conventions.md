@@ -10,7 +10,7 @@ Use **Neutral / Pan-Arab** as the default when the user doesn't specify a region
 |---|---|
 | Neutral / Pan-Arab | Western digits (0-9) |
 | Maghreb (Algeria, Morocco, Tunisia, Libya, Mauritania) | Western digits (0-9) — near-universal in formal documents due to French administrative legacy |
-| Gulf (Saudi, UAE, Qatar, Kuwait, Bahrain, Oman) | Arabic-Indic digits (٠-٩) common in official/government documents, Western digits common in business |
+| Gulf (Saudi, UAE, Qatar, Kuwait, Bahrain, Oman) | Arabic-Indic digits (٠-٩) common in official/government documents, Western digits common in business — but this varies by institution; one sourced example (Saudi Ministry of Finance's own correspondence manual) specifies Western digits for its official letters. See `saudi-official-correspondence.md` — don't assume either system without checking the specific receiving body's practice. |
 | Egypt | Arabic-Indic digits (٠-٩) traditional in official documents, Western increasingly common in business/tech |
 | Levant (Syria, Lebanon, Jordan, Palestine) | Western digits (0-9) most common |
 
@@ -21,7 +21,7 @@ Use **Neutral / Pan-Arab** as the default when the user doesn't specify a region
 | Region | Format | Calendar |
 |---|---|---|
 | Maghreb | DD/MM/YYYY, Gregorian (الميلادي) by default | Gregorian; Hijri only if explicitly religious/legal context |
-| Gulf | DD/MM/YYYY or written-out day name + Hijri date often included alongside Gregorian in official documents | Both, Hijri often primary in government docs |
+| Gulf | DD/MM/YYYY or written-out day name + Hijri date often included alongside Gregorian in official documents | Both, Hijri often primary in government docs. One sourced example (Saudi Ministry of Finance): Hijri date first, then "الموافق", then Gregorian — see `saudi-official-correspondence.md` for the exact format. |
 | Egypt | DD/MM/YYYY, Gregorian | Gregorian |
 | Levant | DD/MM/YYYY, Gregorian | Gregorian |
 

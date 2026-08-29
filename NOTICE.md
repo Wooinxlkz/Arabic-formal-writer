@@ -13,7 +13,7 @@ The regional conventions documented in `references/regional-conventions.md` (num
 
 ## Dialect and hamza word lists
 
-The informal/dialect term list and the hamza-error list in `register_check.py` are curated manually for this project, covering common, well-documented patterns in Egyptian, Gulf, Levantine, and Maghrebi/Darija informal Arabic, plus general chat-register terms. They are:
+The informal/dialect term list and the hamza-error list in `register_check.py` are curated for this project, covering common, corpus-checked patterns across Egyptian, Sudanese, Gulf, Levantine, and Maghrebi/Darija informal Arabic (with country-level tags where verified — see `REGION_TAXONOMY`), plus general chat-register terms. They are:
 - **Not exhaustive.** Absence of a flag does not mean a document is dialect-free or error-free.
 - **Not a dialect classifier or NLP model.** This is literal string matching against a fixed list — it has no understanding of Arabic morphology beyond the simple word-boundary heuristics implemented in the script.
 - Intended to catch common, high-confidence patterns as a first pass, not to replace a native speaker's review for anything that matters.
@@ -47,6 +47,18 @@ Every entry in `DIALECT_TERMS` was checked against the CAMeL Lab frequency lists
 **One term was kept despite a borderline ratio**, noted here for transparency rather than silently kept: `كاين` (ratio 1.5) has no identified MSA homograph and is a core, extremely common Maghrebi term ("there is/exists"), so it was retained — but the ratio is genuinely weaker than most of the list, and it's a reasonable candidate for future review if it turns out to false-positive in practice.
 
 The full before/after list is in `CHANGELOG.md`.
+
+## Region/country taxonomy and list expansion (v1.4.0)
+
+The word list was restructured from four broad regional buckets (Gulf, Egyptian, Levantine, Maghrebi) into an explicit taxonomy (`REGION_TAXONOMY` in `register_check.py`) covering individual countries within each family, plus a new Sudanese family — because "Maghrebi" alone was flattening real differences between Algeria, Tunisia, Libya, and Morocco (the `ماكاش`/`ماكاينش` case above being a concrete example). Each `DIALECT_TERMS` entry now carries an optional `countries` tag; an empty tuple honestly means "confirmed at the family level only, no specific country verified" rather than implying false precision.
+
+**List expansion methodology, and an honest finding about it:** the first attempt was to algorithmically mine the CAMeL DA/MSA frequency lists for the highest-ratio, highest-frequency dialectal candidates with no manual seed list. This mostly did not work — the top results by raw frequency were dominated by proper nouns (people's names, country names, football club names), religious/devotional phrases that are completely normal in formal Arabic (الحمد لله، سبحان الله، إن شاء الله), and social-media-specific jargon (رتويت "retweet", قروب "group chat") rather than usable regional dialect vocabulary. Automated frequency mining alone is not a substitute for semantic judgment about what's actually a useful, appropriate, region-attributable term to flag.
+
+The approach that worked: a curated candidate list (drawn from general knowledge of each dialect family, spanning more regions than before) was checked against the same DA/MSA ratio methodology, same ≥~2.0 threshold and homograph scrutiny as the original list. Several candidates were rejected by this check despite seeming plausible beforehand — for example `قوي` (Egyptian "very") and `بقى` (Egyptian discourse marker) both showed weak or negative ratios once checked, because they substantially overlap with common MSA words (`قوي` = "strong", `بقى` = "remained"); `غير` (candidate Maghrebi "only") showed ratio 0.5, overlapping heavily with MSA "other/without." All three were left out.
+
+16 new terms were added after passing this check: `ليه`, `علطول` (Egyptian); `زول`, `زولة` (Sudanese — the first entries in this family, corroborated by a citation in a 1925 Sudan Government Arabic–English vocabulary, via Wiktionary); `مافي`, `وش`, `شسمه`, `طاري`, `توه`, `خوش` (Gulf); `زعلان`, `كمان` (Levantine); `مزيان`, `ياك`, `غادي`, `فاش` (Maghrebi). Two of the Maghrebi additions (`غادي`, `فاش`) have modest ratios (2.1–2.3) kept on the strength of external knowledge of how iconic/unambiguous they are as dialect markers — flagged here, as with `كاين` above, for anyone reviewing this list to weigh accordingly.
+
+Current total: 63 dialect terms across 6 families (Egyptian, Sudanese, Gulf, Levantine, Maghrebi, informal-chat), 18 hamza patterns. `tests/validate_wordlists.py` now also checks that every country tag actually belongs to its declared family and that every country code is a recognized one.
 
 ## No data collection, no network calls
 

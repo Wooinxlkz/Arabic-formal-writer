@@ -68,7 +68,7 @@ def check_dialect_term_not_equal_to_its_own_equivalent():
     """A dialect term flagged as informal shouldn't have an MSA 'equivalent'
     that's literally the same string — that's a no-op flag."""
     bad = []
-    for term, (equivalent, region) in register_check.DIALECT_TERMS.items():
+    for term, (equivalent, family, countries) in register_check.DIALECT_TERMS.items():
         if term.strip() == equivalent.strip():
             bad.append(term)
     if bad:
@@ -78,15 +78,45 @@ def check_dialect_term_not_equal_to_its_own_equivalent():
 
 
 def check_dialect_terms_have_valid_region_labels():
-    valid_regions = {"egyptian", "gulf", "levantine", "maghrebi", "informal-chat"}
+    valid_families = set(register_check.REGION_TAXONOMY.keys())
     bad = {}
-    for term, (equivalent, region) in register_check.DIALECT_TERMS.items():
-        if region not in valid_regions:
-            bad[term] = region
+    for term, (equivalent, family, countries) in register_check.DIALECT_TERMS.items():
+        if family not in valid_families:
+            bad[term] = family
     if bad:
-        fail("dialect terms with unrecognized region labels", f"{bad}")
+        fail("dialect terms with unrecognized family labels", f"{bad}")
     else:
-        ok(f"all region labels valid ({sorted(valid_regions)})")
+        ok(f"all family labels valid ({sorted(valid_families)})")
+
+
+def check_dialect_countries_belong_to_their_family():
+    """A term tagged with a country code must have that country actually
+    listed under its family in REGION_TAXONOMY — catches copy-paste errors
+    like tagging a Gulf term with a Maghreb country code."""
+    bad = []
+    for term, (equivalent, family, countries) in register_check.DIALECT_TERMS.items():
+        allowed = set(register_check.REGION_TAXONOMY.get(family, []))
+        for c in countries:
+            if c not in allowed:
+                bad.append((term, family, c))
+    if bad:
+        fail("dialect terms with a country code that doesn't belong to their family", f"{bad}")
+    else:
+        ok("all country tags belong to their declared family")
+
+
+def check_dialect_countries_are_known_codes():
+    """Every country code used must exist in COUNTRY_NAMES (catches typos
+    in the ISO code itself, e.g. 'dza' instead of 'dz')."""
+    bad = []
+    for term, (equivalent, family, countries) in register_check.DIALECT_TERMS.items():
+        for c in countries:
+            if c not in register_check.COUNTRY_NAMES:
+                bad.append((term, c))
+    if bad:
+        fail("dialect terms with an unrecognized country code", f"{bad}")
+    else:
+        ok("all country codes are recognized in COUNTRY_NAMES")
 
 
 def check_no_duplicate_terms_across_case_variants():
@@ -178,6 +208,8 @@ def main():
     check_dialect_no_empty_or_whitespace_only()
     check_dialect_term_not_equal_to_its_own_equivalent()
     check_dialect_terms_have_valid_region_labels()
+    check_dialect_countries_belong_to_their_family()
+    check_dialect_countries_are_known_codes()
     check_no_duplicate_terms_across_case_variants()
     check_regex_compiles_for_every_term()
     check_hamza_entries_not_prefix_of_each_other_unexpectedly()

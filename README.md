@@ -54,14 +54,16 @@ Official/business letters · administrative correspondence · CVs/resumes · cov
 
 ## Regional conventions covered
 
-Neutral/Pan-Arab (default) · Gulf · Egyptian · Levantine · Maghrebi/Algerian — numerals, date formats, honorifics, and closing formulas for each. Core grammar is always standard MSA; only these surface conventions change by region.
+Neutral/Pan-Arab (default) · Gulf · Egyptian · Sudanese · Levantine · Maghrebi/Algerian — numerals, date formats, honorifics, and closing formulas for each. Core grammar is always standard MSA; only these surface conventions change by region.
+
+The dialect-leakage checker goes further than the document conventions: it tags terms at the country level where verified (e.g. Algeria/Tunisia vs. Morocco within Maghrebi — see `NOTICE.md`), via an explicit `REGION_TAXONOMY` rather than four flat regional buckets. One country — Saudi Arabia — also has a dedicated, source-cited convention file (`references/saudi-official-correspondence.md`) drawn from an actual government correspondence manual, rather than general knowledge.
 
 ## The checker: `register_check.py`
 
 A dependency-free Python 3 script (standard library only) that checks a draft for:
 
 - **Mixed numeral systems** — Western (0-9) vs Arabic-Indic (٠-٩) used inconsistently in one document
-- **Dialect/informal word leakage** — a curated, labeled list covering Egyptian, Gulf, Levantine, and Maghrebi/Darija terms, each with its MSA equivalent
+- **Dialect/informal word leakage** — a curated, labeled list covering Egyptian, Sudanese, Gulf, Levantine, and Maghrebi/Darija terms (63 terms, some tagged to specific countries), each with its MSA equivalent
 - **Common hamza errors** — a curated high-confidence list (kept short deliberately to limit false positives)
 - **Missing subject line / closing formula** for letter-type documents
 - **Sentence-rhythm outliers** — both "too choppy" (translated-feeling) and true run-ons
@@ -100,15 +102,15 @@ The `skills/arabic-formal-writing/` directory is a standalone Agent Skill and ca
 ## Testing
 
 ```bash
-python3 tests/run_tests.py            # 24 behavioral assertions against sample documents
-python3 tests/validate_wordlists.py   # 9 static consistency checks on the word-list data itself
+python3 tests/run_tests.py            # 26 behavioral assertions against sample documents
+python3 tests/validate_wordlists.py   # 11 static consistency checks on the word-list data itself
 ```
 
-`run_tests.py` checks behavior (does the checker correctly flag/not-flag real sample text). `validate_wordlists.py` checks the data (no typos, no self-contradictions, no regex-breaking entries, no accidental no-op mappings). Both run in CI on every push/PR.
+`run_tests.py` checks behavior (does the checker correctly flag/not-flag real sample text). `validate_wordlists.py` checks the data (no typos, no self-contradictions, no regex-breaking entries, no accidental no-op mappings, no country tag misattributed to the wrong family). Both run in CI on every push/PR.
 
 ## Validation status
 
-As of v1.3.0, the full `DIALECT_TERMS` list (47 terms) has been cross-checked against CAMeL Lab's open Arabic frequency corpora (real Dialectal-Arabic vs. MSA word frequencies, not another AI-generated list) — see `NOTICE.md` for the full methodology. That check found and fixed one real bug (a term that contradicted this project's own recommended letter closing) and removed six terms that turned out to be legitimate MSA words rather than dialect. This is real progress on accuracy, not just process — but it is not the same as native-speaker review, which still hasn't happened. See `NOTICE.md` for exactly what is and isn't verified.
+As of v1.4.0, `DIALECT_TERMS` covers 63 terms across 6 families (Egyptian, Sudanese, Gulf, Levantine, Maghrebi, informal-chat), all cross-checked against CAMeL Lab's open Arabic frequency corpora (real Dialectal-Arabic vs. MSA word frequencies) — see `NOTICE.md` for the full methodology, including terms that were tested and *rejected* for looking plausible but showing weak/negative dialectal signal (a real, recurring failure mode: several common-sounding words turn out to be legitimate MSA homographs). That check has found and fixed one real bug (a term that contradicted this project's own recommended letter closing) and shaped every addition since. This is real progress on accuracy, not just process — but it is not the same as native-speaker review, which still hasn't happened. See `NOTICE.md` for exactly what is and isn't verified.
 
 ## Limitations — read this before relying on it
 

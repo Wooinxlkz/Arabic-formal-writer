@@ -170,6 +170,24 @@ def test_khales_closing_not_flagged_as_dialect():
           len(checks_by_name(result, "missing_closing_formula")) == 0)
 
 
+def test_sheya_hamza_not_flagged_inside_mashiya():
+    """Regression test: 'شيئ ' (missing hamza) is a real, sourced correction
+    (Saudi Ministry of Finance correspondence manual), but must not false-flag
+    the unrelated, completely legitimate word مشيئة (e.g. 'بمشيئة الله')."""
+    print("\n[test_sheya_hamza_not_flagged_inside_mashiya]")
+    good_text = "نسير بمشيئة الله في هذا المشروع."
+    result = register_check.analyze(good_text)
+    check("'مشيئة' does not trigger the شيئ hamza flag",
+          not any("شيئ" in f["snippet"] for f in checks_by_name(result, "hamza_error")),
+          f"got {checks_by_name(result, 'hamza_error')}")
+
+    typo_text = "لدي شيئ أريد أن أخبرك به."
+    result2 = register_check.analyze(typo_text)
+    check("actual 'شيئ' typo is correctly flagged",
+          any("شيئ" in f["snippet"] for f in checks_by_name(result2, "hamza_error")),
+          f"got {checks_by_name(result2, 'hamza_error')}")
+
+
 def main():
     test_good_letter()
     test_flawed_letter()
@@ -178,6 +196,7 @@ def main():
     test_sentence_rhythm()
     test_doc_type_gating()
     test_khales_closing_not_flagged_as_dialect()
+    test_sheya_hamza_not_flagged_inside_mashiya()
 
     print(f"\n{'='*40}\n{PASS} passed, {FAIL} failed\n{'='*40}")
     sys.exit(1 if FAIL > 0 else 0)

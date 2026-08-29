@@ -44,61 +44,107 @@ from typing import Optional
 ARABIC_INDIC_DIGITS = set("٠١٢٣٤٥٦٧٨٩")
 WESTERN_DIGITS = set("0123456789")
 
-# Curated, labeled dialect/informal terms -> MSA equivalent.
-# Not exhaustive by design — see module docstring. Region label is informational.
+# Region taxonomy: broad dialect "family" -> countries commonly associated
+# with it. This is the reference library for country-level tagging below.
+# Being listed here does NOT mean every DIALECT_TERMS entry in that family
+# has been confirmed specific to that country — see each entry's `countries`
+# field: an empty tuple means "confirmed at the family level only, no single
+# country verified yet." Only populate a term's `countries` tuple when there's
+# an actual reason to (a cited source or corpus cross-check — see NOTICE.md).
+REGION_TAXONOMY = {
+    "maghrebi": ["dz", "tn", "ly", "ma", "mr"],   # Algeria, Tunisia, Libya, Morocco, Mauritania
+    "egyptian": ["eg"],
+    "sudanese": ["sd"],
+    "gulf": ["sa", "qa", "ae", "kw", "bh", "om"],  # Saudi, Qatar, UAE, Kuwait, Bahrain, Oman
+    "levantine": ["sy", "lb", "jo", "ps"],          # Syria, Lebanon, Jordan, Palestine
+    "informal-chat": [],  # not a geographic family — pan-dialect chat register
+}
+
+COUNTRY_NAMES = {
+    "dz": "Algeria", "tn": "Tunisia", "ly": "Libya", "ma": "Morocco", "mr": "Mauritania",
+    "eg": "Egypt", "sd": "Sudan",
+    "sa": "Saudi Arabia", "qa": "Qatar", "ae": "UAE", "kw": "Kuwait", "bh": "Bahrain", "om": "Oman",
+    "sy": "Syria", "lb": "Lebanon", "jo": "Jordan", "ps": "Palestine",
+}
+
+# Curated, labeled dialect/informal terms -> (MSA equivalent, family, countries).
+# `countries` is a tuple of ISO-3166 alpha-2 codes where the term has been
+# specifically verified for that country — empty tuple = family-level only.
+# Every entry here has been cross-checked against real Dialectal-Arabic vs.
+# MSA frequency data (CAMeL Lab corpora) to require ratio >= ~2.0 and no
+# identified MSA/classical homograph — see NOTICE.md "Validation performed"
+# for the full methodology, including terms that were tested and rejected.
+# Still not exhaustive by design — see module docstring.
 DIALECT_TERMS = {
     # Egyptian
-    "عايز": ("أريد", "egyptian"),
-    "عاوز": ("أريد", "egyptian"),
-    "ازيك": ("كيف حالك", "egyptian"),
-    "كده": ("هكذا", "egyptian"),
-    "مش": ("ليس", "egyptian"),
-    "ايه": ("ماذا", "egyptian"),
-    "دلوقتي": ("الآن", "egyptian"),
-    "لسه": ("ما زال / حتى الآن", "egyptian"),
-    "علشان": ("لأجل / من أجل", "egyptian"),
-    "فين": ("أين", "egyptian"),
-    "بجد": ("حقاً", "egyptian"),
+    "عايز": ("أريد", "egyptian", ()),
+    "عاوز": ("أريد", "egyptian", ()),
+    "ازيك": ("كيف حالك", "egyptian", ()),
+    "كده": ("هكذا", "egyptian", ()),
+    "مش": ("ليس", "egyptian", ()),
+    "ايه": ("ماذا", "egyptian", ()),
+    "دلوقتي": ("الآن", "egyptian", ()),
+    "لسه": ("ما زال / حتى الآن", "egyptian", ()),
+    "علشان": ("لأجل / من أجل", "egyptian", ()),
+    "فين": ("أين", "egyptian", ()),
+    "بجد": ("حقاً", "egyptian", ()),
+    "ليه": ("لماذا", "egyptian", ()),
+    "علطول": ("فوراً / دائماً", "egyptian", ()),
+    # Sudanese
+    "زول": ("شخص / رجل", "sudanese", ("sd",)),
+    "زولة": ("امرأة / فتاة", "sudanese", ("sd",)),
     # Gulf
-    "شلونك": ("كيف حالك", "gulf"),
-    "وايد": ("كثيراً", "gulf"),
-    "شنو": ("ماذا", "gulf"),
-    "عيل": ("إذاً", "gulf"),
-    "چذي": ("هكذا", "gulf"),
-    "يبه": ("يا هذا", "gulf"),
-    "شخبارك": ("كيف حالك", "gulf"),
-    "الحين": ("الآن", "gulf"),
-    "مو": ("ليس", "gulf"),
+    "شلونك": ("كيف حالك", "gulf", ()),
+    "وايد": ("كثيراً", "gulf", ()),
+    "شنو": ("ماذا", "gulf", ()),
+    "عيل": ("إذاً", "gulf", ()),
+    "چذي": ("هكذا", "gulf", ()),
+    "يبه": ("يا هذا", "gulf", ()),
+    "شخبارك": ("كيف حالك", "gulf", ()),
+    "الحين": ("الآن", "gulf", ()),
+    "مو": ("ليس", "gulf", ()),
+    "مافي": ("لا يوجد", "gulf", ()),
+    "وش": ("ماذا", "gulf", ()),
+    "شسمه": ("ما اسمه", "gulf", ()),
+    "طاري": ("الموضوع", "gulf", ()),
+    "توه": ("للتو / الآن", "gulf", ()),
+    "خوش": ("جيد", "gulf", ()),
     # Levantine
-    "شو": ("ماذا", "levantine"),
-    "هيك": ("هكذا", "levantine"),
-    "منيح": ("جيد", "levantine"),
-    "هلق": ("الآن", "levantine"),
-    "كتير": ("كثيراً", "levantine"),
-    "ليش": ("لماذا", "levantine"),
-    "بدي": ("أريد", "levantine"),
-    "شو في": ("ما الأمر", "levantine"),
+    "شو": ("ماذا", "levantine", ()),
+    "هيك": ("هكذا", "levantine", ()),
+    "منيح": ("جيد", "levantine", ()),
+    "هلق": ("الآن", "levantine", ()),
+    "كتير": ("كثيراً", "levantine", ()),
+    "ليش": ("لماذا", "levantine", ()),
+    "بدي": ("أريد", "levantine", ()),
+    "شو في": ("ما الأمر", "levantine", ()),
+    "زعلان": ("منزعج / غاضب", "levantine", ()),
+    "كمان": ("أيضاً", "levantine", ()),
     # Maghrebi / Darija
-    "بزاف": ("كثيراً", "maghrebi"),
-    "واش": ("هل", "maghrebi"),
-    "دابا": ("الآن", "maghrebi"),
-    "كاين": ("يوجد", "maghrebi"),
-    "ماكاش": ("لا يوجد", "maghrebi"),
-    "ماكاينش": ("لا يوجد", "maghrebi"),
-    "راه": ("إنّ / في الواقع", "maghrebi"),
-    "بصح": ("لكن", "maghrebi"),
-    "نتاع": ("الخاص بـ", "maghrebi"),
-    "بغيت": ("أردت / أريد", "maghrebi"),
-    "علاش": ("لماذا", "maghrebi"),
-    "شحال": ("كم", "maghrebi"),
-    "مليح": ("جيد", "maghrebi"),
+    "بزاف": ("كثيراً", "maghrebi", ()),
+    "واش": ("هل", "maghrebi", ()),
+    "دابا": ("الآن", "maghrebi", ()),
+    "كاين": ("يوجد", "maghrebi", ()),
+    "ماكاش": ("لا يوجد", "maghrebi", ("dz", "tn")),
+    "ماكاينش": ("لا يوجد", "maghrebi", ("ma",)),
+    "راه": ("إنّ / في الواقع", "maghrebi", ()),
+    "بصح": ("لكن", "maghrebi", ()),
+    "نتاع": ("الخاص بـ", "maghrebi", ()),
+    "بغيت": ("أردت / أريد", "maghrebi", ()),
+    "علاش": ("لماذا", "maghrebi", ()),
+    "شحال": ("كم", "maghrebi", ()),
+    "مليح": ("جيد", "maghrebi", ()),
+    "مزيان": ("جيد", "maghrebi", ("ma",)),
+    "ياك": ("أليس كذلك", "maghrebi", ()),
+    "غادي": ("سوف / ذاهب لـ", "maghrebi", ()),
+    "فاش": ("متى / في أي", "maghrebi", ()),
     # Pan-dialect / chat-register informal words that leak in from any region
-    "أوكي": ("حسناً", "informal-chat"),
-    "اوكي": ("حسناً", "informal-chat"),
-    "يلا": ("هيا", "informal-chat"),
-    "هاي": ("مرحباً", "informal-chat"),
-    "بايباي": ("مع السلامة", "informal-chat"),
-    "ثانكس": ("شكراً", "informal-chat"),
+    "أوكي": ("حسناً", "informal-chat", ()),
+    "اوكي": ("حسناً", "informal-chat", ()),
+    "يلا": ("هيا", "informal-chat", ()),
+    "هاي": ("مرحباً", "informal-chat", ()),
+    "بايباي": ("مع السلامة", "informal-chat", ()),
+    "ثانكس": ("شكراً", "informal-chat", ()),
 }
 
 # Curated common hamza errors: (wrong_form -> correct_form).
@@ -122,6 +168,7 @@ HAMZA_ERRORS = {
     "اجابة": "إجابة",
     "امس": "أمس",
     "انسان": "إنسان",
+    "شيئ ": "شيء ",  # trailing space avoids matching inside مشيئة (a legitimate word)
 }
 
 # Closing formulas recognized as valid formal closings (see regional-conventions.md)
@@ -189,16 +236,21 @@ def check_numeral_consistency(text: str, report: Report):
 
 
 def check_dialect_leakage(text: str, report: Report):
-    for term, (equivalent, region) in DIALECT_TERMS.items():
+    for term, (equivalent, family, countries) in DIALECT_TERMS.items():
         # word-boundary-ish match using surrounding whitespace/punctuation
         pattern = re.compile(r"(?<![\u0621-\u064A])" + re.escape(term) + r"(?![\u0621-\u064A])")
         matches = pattern.findall(text)
         if matches:
+            if countries:
+                country_str = "/".join(COUNTRY_NAMES.get(c, c) for c in countries)
+                region_label = f"{family}: {country_str}"
+            else:
+                region_label = family
             report.add(
                 check="dialect_leakage",
                 severity="warning",
                 message=(
-                    f"Found informal/dialect term '{term}' ({region}) "
+                    f"Found informal/dialect term '{term}' ({region_label}) "
                     f"{len(matches)}x in a formal document."
                 ),
                 snippet=term,
@@ -326,7 +378,7 @@ def main():
                                   "memo", "minutes", "contract", "other"],
                          help="Document type, enables extra checks (e.g. subject line for letters)")
     parser.add_argument("--region", default=None,
-                         choices=["neutral", "gulf", "egypt", "levant", "maghreb"],
+                         choices=["neutral", "gulf", "egypt", "sudan", "levant", "maghreb"],
                          help="Regional convention context (informational, included in output)")
     parser.add_argument("--strict", action="store_true",
                          help="Exit with code 1 if any flag was raised (useful for CI/tests)")

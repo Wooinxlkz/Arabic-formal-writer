@@ -1,5 +1,39 @@
 # Changelog
 
+## [1.5.0]
+
+### Added — real, sourced country-specific document conventions (not just word-list data)
+- New reference file `skills/arabic-formal-writing/references/saudi-official-correspondence.md`, sourced from a single citable authority: "دليل المراسلات الكتابية" (Official Correspondence Manual, 1440H), Saudi Ministry of Finance — the first genuinely sourced (vs. general-knowledge) document-convention reference in this project.
+- Real findings from that source: a precise rank-based honorific/closing-formula table (King/Crown Prince/Princes/Ministers/multiple recipients/Directors-general — 5 distinct tiers, not the previous flat "Gulf" treatment); the exact Hijri-then-Gregorian date format with "الموافق"; and a documented correction to `regional-conventions.md`'s prior assumption about Gulf numerals — this ministry's own manual specifies **Western** digits, not Arabic-Indic, contradicting the general note. `regional-conventions.md` now flags this as institution-dependent rather than asserting one convention.
+- One new `HAMZA_ERRORS` entry (`شيئ ` → `شيء `, space-bounded) sourced from the same manual's own error-correction table — caught and avoided a real false-positive risk before adding it: a naive (non-space-bounded) version would have incorrectly flagged the unrelated, completely legitimate word `مشيئة` (as in `بمشيئة الله`). Regression test `test_sheya_hamza_not_flagged_inside_mashiya` added.
+
+### Investigated and explicitly declined
+- Attempted to find open, per-country dialect datasets for Gulf/Levantine countries (comparable to Morocco's DODa) to push more `DIALECT_TERMS` entries to country-level. None found — only general Wikipedia dialect descriptions and small, unverified user-contributed dictionary apps, no structured downloadable data. Documented here rather than fabricating country-level precision without a real source. Most Gulf/Levantine entries remain family-level only (`countries=()`), honestly.
+
+### Notes
+- 26 behavioral assertions (up from 24), 11 static (unchanged). 37 total.
+
+## [1.4.0]
+
+### Changed — region taxonomy restructured from 4 broad buckets to family + country
+- `DIALECT_TERMS` entries changed from `(equivalent, family)` to `(equivalent, family, countries)` — a tuple of ISO-3166 codes where the term is specifically verified for that country, empty when only confirmed at the family level (honest, not guessed).
+- Added `REGION_TAXONOMY` (family → its countries) and `COUNTRY_NAMES` as the reference taxonomy — this is now a real library structure, not just four flat labels.
+- Added a new **Sudanese** family (previously absent entirely).
+- `check_dialect_leakage` output now reports country-level attribution when available (e.g. "maghrebi: Algeria/Tunisia" instead of just "maghrebi").
+- `--region` CLI choices gained `sudan`.
+
+### Added — 16 new dialect terms, all corpus-checked before inclusion
+Egyptian: `ليه`, `علطول`. Sudanese (new family): `زول`, `زولة`. Gulf: `مافي`, `وش`, `شسمه`, `طاري`, `توه`, `خوش`. Levantine: `زعلان`, `كمان`. Maghrebi: `مزيان` (ma), `ياك`, `غادي`, `فاش`. Every addition checked against CAMeL Lab DA/MSA frequency ratios using the same methodology as the v1.3.0 cleanup — see `NOTICE.md` "Region/country taxonomy and list expansion (v1.4.0)" for the full list of candidates that were *rejected* by this check (e.g. `قوي`, `بقى`, `غير` — each a legitimate-MSA homograph, same failure pattern as the v1.3.0 removals).
+
+Total: 63 dialect terms (up from 47), 18 hamza patterns.
+
+### Added — 2 new static validator checks
+`tests/validate_wordlists.py` now also verifies every country tag actually belongs to its declared family, and every country code used is a recognized one (11 static checks total, up from 9).
+
+### Notes
+- An initial attempt to expand the list by algorithmically mining the highest-frequency DA/MSA-ratio words with no manual filtering was tried and largely failed — the top results were dominated by proper nouns, religious phrases, and social-media jargon rather than usable dialect vocabulary. Documented honestly in `NOTICE.md` rather than hidden; the working method was a curated candidate list checked against the same ratio data, not a fully automated pipeline.
+- Regional *conventions* (`regional-conventions.md`: numerals, dates, honorifics) remain at the broader family level — country-level precision there would require a data source this project doesn't currently have verified access to, unlike the dialect word list.
+
 ## [1.3.0]
 
 ### Fixed — real bug found via data cross-check
