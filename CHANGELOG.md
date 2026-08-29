@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.0]
+
+### Added
+- `tests/validate_wordlists.py` — 9 static consistency checks on `DIALECT_TERMS` and `HAMZA_ERRORS` themselves (not behavior): no wrong==correct no-ops, no empty keys, no invalid region labels, no duplicate keys (scanned from source since Python dict literals silently drop true dupes), every term compiles as a valid regex, no unexpected hamza-entry prefix collisions, closing-patterns/whitelist sanity. Wired into CI.
+- `NOTICE.md` now documents recommended real validation sources for expanding the word lists (MADAR Lexicon, NADI, QADI, IADD — peer-reviewed Arabic dialect corpora) instead of leaving "these lists aren't authoritative" as an unresolved concern with no path forward. `CONTRIBUTING.md` updated to point contributors at the same sources.
+
+### Notes
+- Ran a real gap-check against these academic dialect resources this cycle. They're gated/license-required datasets, so no data was bulk-imported — this release documents the correct sourcing path rather than fabricating an import that didn't happen.
+
 ## [1.1.0]
 
 ### Added

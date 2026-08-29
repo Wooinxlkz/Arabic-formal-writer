@@ -18,6 +18,19 @@ The informal/dialect term list and the hamza-error list in `register_check.py` a
 - **Not a dialect classifier or NLP model.** This is literal string matching against a fixed list — it has no understanding of Arabic morphology beyond the simple word-boundary heuristics implemented in the script.
 - Intended to catch common, high-confidence patterns as a first pass, not to replace a native speaker's review for anything that matters.
 
+## Recommended sources for validating or expanding the word lists
+
+This project's dialect/hamza lists were compiled from general knowledge, not cross-checked against a peer-reviewed linguistic resource. That is the single biggest accuracy gap in this project, and it's worth being specific about the right way to close it rather than leaving it vague.
+
+The Arabic-NLP research community maintains real, annotated dialect resources that are a categorically stronger validation source than another AI-generated wordlist:
+
+- **MADAR Corpus & Lexicon** (Bouamor et al., 2018, NYU Abu Dhabi CAMeL Lab) — a parallel corpus/lexicon covering 25 Arabic city dialects plus MSA, with ~47,000 lexical entries each mapped to MSA/English/French. The most directly useful resource for this project's purpose, since it's structured as dialect-term → MSA-equivalent, which is exactly the shape `DIALECT_TERMS` uses. `https://camel.abudhabi.nyu.edu/madar/` — requires a data license agreement to download; check current terms before redistributing any derived list.
+- **NADI (Nuanced Arabic Dialect Identification)** shared tasks, UBC-NLP — annual country- and province-level dialect corpora across all 21 Arab countries, useful for confirming which terms are actually associated with which country rather than a broader regional guess. `https://github.com/UBC-NLP/nadi`
+- **QADI** (QCRI, "Arabic Dialect Identification in the Wild") — dialect ID at the country level from real social-media text. `https://github.com/qcri/QADI`
+- **IADD** — an integrated dataset combining multiple prior dialect-ID corpora into one labeled set. `https://github.com/JihadZa/IADD`
+
+**How this should be used, concretely:** if you're expanding `DIALECT_TERMS` or `HAMZA_ERRORS`, the right process is (1) check whether the dataset's license permits the use you have in mind, (2) look up the term/pattern against the corpus rather than relying on memory or another AI's output, (3) add it with a test assertion per `CONTRIBUTING.md`. A word-list entry justified by "a research corpus confirmed this pattern in real annotated text" is a materially stronger claim than "this seemed right" — say which one it is when you contribute.
+
 ## No data collection, no network calls
 
 This plugin performs no network requests, collects no user data, and sends nothing anywhere. `register_check.py` runs entirely locally against the text you give it. The skill and agent instructions direct Claude's behavior when the plugin is active; they do not by themselves transmit any information beyond Claude's normal operation.

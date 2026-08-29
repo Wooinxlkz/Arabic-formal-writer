@@ -100,10 +100,11 @@ The `skills/arabic-formal-writing/` directory is a standalone Agent Skill and ca
 ## Testing
 
 ```bash
-python3 tests/run_tests.py
+python3 tests/run_tests.py            # 22 behavioral assertions against sample documents
+python3 tests/validate_wordlists.py   # 9 static consistency checks on the word-list data itself
 ```
 
-22 assertions covering: clean-document false-positive avoidance, flawed-document detection (numerals, dialect terms, hamza errors, missing structure), whitelist handling, sentence-rhythm thresholds, and doc-type gating. All passing as of this build — re-run after any change to `register_check.py`.
+`run_tests.py` checks behavior (does the checker correctly flag/not-flag real sample text). `validate_wordlists.py` checks the data (no typos, no self-contradictions, no regex-breaking entries, no accidental no-op mappings) — a different failure class that behavioral tests won't necessarily catch. Both run in CI on every push/PR.
 
 ## Limitations — read this before relying on it
 

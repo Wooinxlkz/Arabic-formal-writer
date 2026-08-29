@@ -32,6 +32,9 @@ jobs:
       - name: Run test suite
         run: python3 tests/run_tests.py
 
+      - name: Run word-list static validator
+        run: python3 tests/validate_wordlists.py
+
       - name: CLI smoke test — good fixture (expect exit 0 with --strict)
         run: python3 skills/arabic-formal-writing/scripts/register_check.py tests/fixtures/good_letter.txt --doc-type letter --region maghreb --strict --json
 
