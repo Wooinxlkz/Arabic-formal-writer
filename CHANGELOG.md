@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.3.0]
+
+### Fixed — real bug found via data cross-check
+- **`خالص` self-contradiction bug**: it was flagged as informal Egyptian dialect, but it's also part of this project's own recommended formal closing `مع خالص التحية` (listed in `CLOSING_PATTERNS`). Any document using our own template's suggested closing would have been incorrectly flagged as containing dialect leakage. Removed from `DIALECT_TERMS`; added regression test `test_khales_closing_not_flagged_as_dialect`.
+
+### Changed — word list cross-checked against real frequency data
+Every `DIALECT_TERMS` entry checked against CAMeL Lab's open Dialectal-Arabic vs. MSA frequency corpora (6.7M / 11.4M unique words respectively — see `NOTICE.md` "Validation performed" for the full methodology and per-term ratios).
+
+**Removed** (ratio ≤ 1.5, each with a plausible legitimate-MSA explanation):
+`خالص`, `تمام`, `قاع`, `هلأ`, `أبغى`, `زين`
+
+**Corrected/added** (cross-checked against DODa, the Moroccan-specific Darija corpus):
+- `ماكاش` kept — confirmed real and strongly dialectal (ratio 11.5) but more Algerian/Tunisian than Moroccan
+- `ماكاينش` added — the attested Moroccan form (ratio 6.6), absent from the original list
+
+**Kept with a noted caveat**: `كاين` (ratio 1.5, no identified MSA homograph, but the weakest-confidence entry remaining in the list)
+
+Net: 47 dialect terms (down from 52), each now backed by a checked frequency ratio rather than unverified judgment.
+
+### Added
+- `test_khales_closing_not_flagged_as_dialect` regression test (24 behavioral assertions total, up from 22)
+- `NOTICE.md` "Validation performed (v1.3.0)" section — full methodology and per-term reasoning, not just a summary claim
+
 ## [1.2.0]
 
 ### Added

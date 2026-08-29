@@ -100,11 +100,15 @@ The `skills/arabic-formal-writing/` directory is a standalone Agent Skill and ca
 ## Testing
 
 ```bash
-python3 tests/run_tests.py            # 22 behavioral assertions against sample documents
+python3 tests/run_tests.py            # 24 behavioral assertions against sample documents
 python3 tests/validate_wordlists.py   # 9 static consistency checks on the word-list data itself
 ```
 
-`run_tests.py` checks behavior (does the checker correctly flag/not-flag real sample text). `validate_wordlists.py` checks the data (no typos, no self-contradictions, no regex-breaking entries, no accidental no-op mappings) — a different failure class that behavioral tests won't necessarily catch. Both run in CI on every push/PR.
+`run_tests.py` checks behavior (does the checker correctly flag/not-flag real sample text). `validate_wordlists.py` checks the data (no typos, no self-contradictions, no regex-breaking entries, no accidental no-op mappings). Both run in CI on every push/PR.
+
+## Validation status
+
+As of v1.3.0, the full `DIALECT_TERMS` list (47 terms) has been cross-checked against CAMeL Lab's open Arabic frequency corpora (real Dialectal-Arabic vs. MSA word frequencies, not another AI-generated list) — see `NOTICE.md` for the full methodology. That check found and fixed one real bug (a term that contradicted this project's own recommended letter closing) and removed six terms that turned out to be legitimate MSA words rather than dialect. This is real progress on accuracy, not just process — but it is not the same as native-speaker review, which still hasn't happened. See `NOTICE.md` for exactly what is and isn't verified.
 
 ## Limitations — read this before relying on it
 

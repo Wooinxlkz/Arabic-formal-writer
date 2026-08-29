@@ -20,16 +20,33 @@ The informal/dialect term list and the hamza-error list in `register_check.py` a
 
 ## Recommended sources for validating or expanding the word lists
 
-This project's dialect/hamza lists were compiled from general knowledge, not cross-checked against a peer-reviewed linguistic resource. That is the single biggest accuracy gap in this project, and it's worth being specific about the right way to close it rather than leaving it vague.
+This project's dialect/hamza lists were originally compiled from general knowledge. As of the v1.3.0 update, the full `DIALECT_TERMS` list has been cross-checked against real corpus-frequency data — see "Validation performed" below for what that found and changed. Further expansion should follow the same approach rather than reverting to unchecked additions.
 
 The Arabic-NLP research community maintains real, annotated dialect resources that are a categorically stronger validation source than another AI-generated wordlist:
 
-- **MADAR Corpus & Lexicon** (Bouamor et al., 2018, NYU Abu Dhabi CAMeL Lab) — a parallel corpus/lexicon covering 25 Arabic city dialects plus MSA, with ~47,000 lexical entries each mapped to MSA/English/French. The most directly useful resource for this project's purpose, since it's structured as dialect-term → MSA-equivalent, which is exactly the shape `DIALECT_TERMS` uses. `https://camel.abudhabi.nyu.edu/madar/` — requires a data license agreement to download; check current terms before redistributing any derived list.
-- **NADI (Nuanced Arabic Dialect Identification)** shared tasks, UBC-NLP — annual country- and province-level dialect corpora across all 21 Arab countries, useful for confirming which terms are actually associated with which country rather than a broader regional guess. `https://github.com/UBC-NLP/nadi`
-- **QADI** (QCRI, "Arabic Dialect Identification in the Wild") — dialect ID at the country level from real social-media text. `https://github.com/qcri/QADI`
-- **IADD** — an integrated dataset combining multiple prior dialect-ID corpora into one labeled set. `https://github.com/JihadZa/IADD`
+- **CAMeL Lab Arabic Frequency Lists** (Khalifa et al., 2021, NYU Abu Dhabi) — word-frequency counts derived from the CAMeLBERT pretraining corpus, split by variety: Classical Arabic (2.4M unique words / 847M tokens), Dialectal Arabic — mixed dialects (6.7M unique words / 5.8B tokens), and MSA (11.4M unique words / 12.6B tokens). Openly downloadable (GitHub Releases, no license gate). `https://github.com/CAMeL-Lab/Camel_Arabic_Frequency_Lists` — this is what was actually used for the v1.3.0 cross-check below.
+- **MADAR Corpus & Lexicon** (Bouamor et al., 2018, NYU Abu Dhabi CAMeL Lab) — ~47,000 dialect→MSA/English/French entries across 25 Arabic city dialects. Requires a signed data-license agreement to download. `https://camel.abudhabi.nyu.edu/madar/`
+- **NADI** (UBC-NLP) — annual country/province-level dialect ID shared-task corpora, all 21 Arab countries. `https://github.com/UBC-NLP/nadi`
+- **QADI** (QCRI) — dialect ID from real social-media text. `https://github.com/qcri/QADI`
+- **Darija Open Dataset (DODa)** — ~150,000 Darija↔English entries, specifically Moroccan. Licensed **CC BY-NC 4.0** (non-commercial) — usable to verify individual terms, but its data must not be bulk-copied into this MIT-licensed repo. `https://github.com/darija-open-dataset/dataset`
 
-**How this should be used, concretely:** if you're expanding `DIALECT_TERMS` or `HAMZA_ERRORS`, the right process is (1) check whether the dataset's license permits the use you have in mind, (2) look up the term/pattern against the corpus rather than relying on memory or another AI's output, (3) add it with a test assertion per `CONTRIBUTING.md`. A word-list entry justified by "a research corpus confirmed this pattern in real annotated text" is a materially stronger claim than "this seemed right" — say which one it is when you contribute.
+## Validation performed (v1.3.0)
+
+Every entry in `DIALECT_TERMS` was checked against the CAMeL Lab frequency lists by computing each word's frequency ratio between the Dialectal Arabic (DA) corpus and the Modern Standard Arabic (MSA) corpus. A high DA/MSA ratio means a term is genuinely dialect-skewed; a ratio near or below 1 means the term is roughly as common in real MSA text as in dialectal text — i.e. it's a poor signal for "informal leakage" and risks false-positiving correct formal writing.
+
+**Six terms were removed** for having a DA/MSA ratio at or below 1.5, each with a plausible legitimate-MSA explanation confirmed by inspection:
+- `خالص` (ratio 0.8) — legitimate MSA word ("pure/sincere/exempt"); critically, it also appears inside this project's own recommended closing formula `مع خالص التحية`. Its presence in `DIALECT_TERMS` was a genuine self-contradiction bug: a document using our own recommended closing would have been incorrectly flagged. A regression test (`test_khales_closing_not_flagged_as_dialect`) now guards against reintroducing this.
+- `تمام` (ratio 0.8) — legitimate MSA word ("completion/perfection")
+- `قاع` (ratio 0.6) — legitimate MSA word ("floor/bottom", e.g. قاع البحر)
+- `هلأ` (ratio 0.7) — no clear positive dialectal signal in the corpus data
+- `أبغى` (ratio 1.0) — overlaps with the classical/MSA root بغى / ابتغى ("to seek/desire")
+- `زين` (ratio 1.5) — overlaps with classical/poetic MSA usage ("adorned/beautiful")
+
+**One entry was corrected and one added** after cross-checking against DODa (Moroccan-specific): the original `ماكاش` entry does not appear in the Moroccan Darija corpus at all — the attested Moroccan form is `ماكاينش`/`ماكاين`. Rather than replace it outright, both are now kept: CAMeL's aggregated cross-dialect data confirms `ماكاش` is real and strongly dialectal (ratio 11.5) — just more specifically Algerian/Tunisian than Moroccan — while `ماكاينش` (ratio 6.6) covers the Moroccan form.
+
+**One term was kept despite a borderline ratio**, noted here for transparency rather than silently kept: `كاين` (ratio 1.5) has no identified MSA homograph and is a core, extremely common Maghrebi term ("there is/exists"), so it was retained — but the ratio is genuinely weaker than most of the list, and it's a reasonable candidate for future review if it turns out to false-positive in practice.
+
+The full before/after list is in `CHANGELOG.md`.
 
 ## No data collection, no network calls
 

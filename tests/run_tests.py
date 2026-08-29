@@ -147,6 +147,29 @@ def test_doc_type_gating():
           len(checks_by_name(result2, "missing_closing_formula")) == 0)
 
 
+def test_khales_closing_not_flagged_as_dialect():
+    """Regression test for a real bug found via CAMeL Lab frequency-list
+    cross-check: خالص is legitimate MSA (appears in the standard formal
+    closing 'مع خالص التحية', listed in CLOSING_PATTERNS itself) and must
+    never be flagged as Egyptian dialect leakage, or every letter using our
+    own recommended closing formula would incorrectly fail its own check."""
+    print("\n[test_khales_closing_not_flagged_as_dialect]")
+    text = (
+        "الموضوع: طلب معلومات\n\n"
+        "السيد المدير المحترم،\n"
+        "تحية طيبة وبعد،\n\n"
+        "أرجو منكم موافاتي بالمعلومات المطلوبة في أقرب وقت ممكن.\n\n"
+        "مع خالص التحية،\n"
+        "الاسم"
+    )
+    result = register_check.analyze(text, doc_type="letter")
+    check("'خالص' inside the standard closing formula is not flagged as dialect leakage",
+          not any(f["snippet"] == "خالص" for f in checks_by_name(result, "dialect_leakage")),
+          f"got {checks_by_name(result, 'dialect_leakage')}")
+    check("the standard closing itself is recognized (no missing_closing_formula flag)",
+          len(checks_by_name(result, "missing_closing_formula")) == 0)
+
+
 def main():
     test_good_letter()
     test_flawed_letter()
@@ -154,6 +177,7 @@ def main():
     test_latin_leakage_whitelist()
     test_sentence_rhythm()
     test_doc_type_gating()
+    test_khales_closing_not_flagged_as_dialect()
 
     print(f"\n{'='*40}\n{PASS} passed, {FAIL} failed\n{'='*40}")
     sys.exit(1 if FAIL > 0 else 0)
