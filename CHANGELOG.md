@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.6.0]
+
+### Added — robustness hardening, found via deliberate stress-testing
+For the first time, the checker was stress-tested against inputs it had never been tried against: empty strings, pure English, pure numbers, emoji, null/control characters, RTL/LTR mark characters, mixed scripts, and a 5000-character single word with no spaces. No crashes on any of them — but one real usability bug was found and fixed:
+
+- **`latin_script_leakage` flag-spam bug**: a document with heavy or entirely non-Arabic content (e.g. someone accidentally runs the checker against an English document) previously produced one flag per *occurrence* of every Latin word — a genuinely non-Arabic document could produce dozens of near-identical flags with no summary signal. Fixed: flags are now deduplicated by word and capped at 8 individual flags, with a summary flag for anything beyond the cap.
+- **New check: `check_arabic_content_ratio`** — computes the ratio of Arabic to Latin alphabetic characters and raises a single clear `low_arabic_content` warning when a document is overwhelmingly non-Arabic (<30% Arabic characters, with enough total text to judge), rather than letting the rest of the report imply a meaningful Arabic-register review happened when it didn't.
+- 3 new regression tests covering the dedup/cap behavior and the new ratio check, including a check that it correctly does *not* fire on normal Arabic text or on trivially short input.
+
+### Fixed — a recurring editing mistake in the test file, caught and named honestly
+While adding new tests to `tests/run_tests.py` in this session and the prior one, a `str_replace` edit accidentally deleted the `def main():` line three separate times (this changelog entry exists partly to note that pattern honestly rather than bury it — each time it broke the test file immediately and was caught by actually running the tests, not assumed fixed).
+
+### Notes
+- 32 behavioral assertions (up from 26), 11 static (unchanged). 43 total.
+- This release intentionally did not add more word-list entries — after the country-level and Gulf/Levant dataset investigation in v1.4.0/v1.5.0, the highest-value remaining work was found to be robustness, not more dialect terms.
+
 ## [1.5.0]
 
 ### Added — real, sourced country-specific document conventions (not just word-list data)

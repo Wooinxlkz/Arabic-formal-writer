@@ -327,6 +327,12 @@ def check_sentence_length(text: str, report: Report):
 
 
 def check_latin_leakage(text: str, report: Report):
+    # Deduplicate by lowercased word — a document repeating the same brand
+    # name 20 times shouldn't produce 20 near-identical flags. Cap the number
+    # of individual flags raised so a document with heavy or accidental
+    # non-Arabic content (e.g. someone pastes the wrong text entirely)
+    # produces one clear signal instead of a wall of repetitive noise.
+    seen = {}
     for match in re.finditer(r"[A-Za-zÀ-ÿ]{2,}", text):
         word = match.group(0)
         low = word.lower()
@@ -335,11 +341,57 @@ def check_latin_leakage(text: str, report: Report):
         if word.isupper() and len(word) <= 5:
             # likely an acronym/brand — don't flag
             continue
+        seen.setdefault(low, word)  # keep first-seen casing
+
+    distinct = list(seen.values())
+    cap = 8
+    for word in distinct[:cap]:
         report.add(
             check="latin_script_leakage",
             severity="info",
             message=f"Untransliterated Latin-script word '{word}' found — verify it's a justified proper noun/technical term.",
             snippet=word,
+        )
+    if len(distinct) > cap:
+        report.add(
+            check="latin_script_leakage_summary",
+            severity="info",
+            message=(
+                f"{len(distinct) - cap} additional distinct Latin-script words found beyond "
+                f"the {cap} listed above — this document may be substantially non-Arabic, "
+                "or heavily mixed-language. Consider whether register_check.py is the right "
+                "tool for this text at all."
+            ),
+        )
+
+
+def check_arabic_content_ratio(text: str, report: Report):
+    """Sanity check: if the text has almost no Arabic content at all, every
+    other check's output is likely meaningless noise (e.g. someone ran this
+    against an English document by mistake). Flag that plainly instead of
+    letting the rest of the report imply a real Arabic-register review
+    happened."""
+    arabic_chars = sum(1 for c in text if '\u0621' <= c <= '\u064A')
+    latin_chars = sum(1 for c in text if ('a' <= c.lower() <= 'z'))
+    total_letters = arabic_chars + latin_chars
+    report.stats["arabic_char_count"] = arabic_chars
+    report.stats["latin_char_count"] = latin_chars
+
+    if total_letters < 5:
+        return  # too little text to make any claim either way
+
+    arabic_ratio = arabic_chars / total_letters
+    report.stats["arabic_char_ratio"] = round(arabic_ratio, 2)
+
+    if arabic_ratio < 0.3:
+        report.add(
+            check="low_arabic_content",
+            severity="warning",
+            message=(
+                f"Only {arabic_ratio:.0%} of alphabetic characters in this text are Arabic. "
+                "This checker is designed for formal Arabic documents — results below may not "
+                "be meaningful if this text isn't primarily Arabic."
+            ),
         )
 
 
@@ -359,6 +411,7 @@ def analyze(text: str, doc_type: Optional[str] = None, region: Optional[str] = N
     check_letter_conventions(text, doc_type, report)
     check_sentence_length(text, report)
     check_latin_leakage(text, report)
+    check_arabic_content_ratio(text, report)
 
     return report.to_dict()
 

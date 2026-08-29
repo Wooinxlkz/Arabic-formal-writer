@@ -188,6 +188,51 @@ def test_sheya_hamza_not_flagged_inside_mashiya():
           f"got {checks_by_name(result2, 'hamza_error')}")
 
 
+def test_latin_leakage_dedup_and_cap():
+    """Regression test: repeated/many distinct Latin words should be
+    deduplicated and capped, not produce one flag per occurrence — a
+    document with heavy non-Arabic content should stay readable, not spam."""
+    print("\n[test_latin_leakage_dedup_and_cap]")
+    repeated = "استخدم برنامج Excel و Excel و Excel لهذا التقرير."
+    result = register_check.analyze(repeated)
+    excel_flags = [f for f in checks_by_name(result, "latin_script_leakage") if f["snippet"] == "Excel"]
+    check("repeated Latin word produces exactly one flag, not one per occurrence",
+          len(excel_flags) == 1,
+          f"got {len(excel_flags)} flags for 'Excel'")
+
+    many_words = "one two three four five six seven eight nine ten eleven twelve"
+    result2 = register_check.analyze(many_words)
+    individual_flags = checks_by_name(result2, "latin_script_leakage")
+    summary_flags = checks_by_name(result2, "latin_script_leakage_summary")
+    check("individual latin_script_leakage flags capped at 8",
+          len(individual_flags) == 8,
+          f"got {len(individual_flags)}")
+    check("a summary flag appears for the remainder beyond the cap",
+          len(summary_flags) == 1,
+          f"got {len(summary_flags)}")
+
+
+def test_low_arabic_content_warns_appropriately():
+    """A document that's overwhelmingly non-Arabic should get one clear
+    warning explaining the tool's results may not be meaningful — not just
+    a wall of individual word-level flags with no overall signal."""
+    print("\n[test_low_arabic_content_warns_appropriately]")
+    english_text = "This is a formal letter with no Arabic content at all in it whatsoever today."
+    result = register_check.analyze(english_text)
+    check("low_arabic_content warning fires for an almost-entirely-English document",
+          len(checks_by_name(result, "low_arabic_content")) == 1)
+
+    arabic_text = load("good_letter.txt")
+    result2 = register_check.analyze(arabic_text)
+    check("low_arabic_content warning does NOT fire on a normal Arabic letter",
+          len(checks_by_name(result2, "low_arabic_content")) == 0)
+
+    tiny_text = "hi"
+    result3 = register_check.analyze(tiny_text)
+    check("low_arabic_content does not fire on trivially short text (too little signal to judge)",
+          len(checks_by_name(result3, "low_arabic_content")) == 0)
+
+
 def main():
     test_good_letter()
     test_flawed_letter()
@@ -197,6 +242,8 @@ def main():
     test_doc_type_gating()
     test_khales_closing_not_flagged_as_dialect()
     test_sheya_hamza_not_flagged_inside_mashiya()
+    test_latin_leakage_dedup_and_cap()
+    test_low_arabic_content_warns_appropriately()
 
     print(f"\n{'='*40}\n{PASS} passed, {FAIL} failed\n{'='*40}")
     sys.exit(1 if FAIL > 0 else 0)

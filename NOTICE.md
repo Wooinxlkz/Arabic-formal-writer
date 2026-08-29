@@ -60,9 +60,17 @@ The approach that worked: a curated candidate list (drawn from general knowledge
 
 Current total: 63 dialect terms across 6 families (Egyptian, Sudanese, Gulf, Levantine, Maghrebi, informal-chat), 18 hamza patterns. `tests/validate_wordlists.py` now also checks that every country tag actually belongs to its declared family and that every country code is a recognized one.
 
-## No data collection, no network calls
+## No data collection, no network calls at runtime
 
-This plugin performs no network requests, collects no user data, and sends nothing anywhere. `register_check.py` runs entirely locally against the text you give it. The skill and agent instructions direct Claude's behavior when the plugin is active; they do not by themselves transmit any information beyond Claude's normal operation.
+The **shipped script**, `register_check.py`, performs no network requests, collects no user data, and sends nothing anywhere — it runs entirely locally against the text you give it. This is separate from how this project's *data was validated during development* (see "Validation performed" and "Region/country taxonomy" above, and "Sourced Saudi conventions" below) — that process did fetch external corpora and a government PDF, but none of that happens when you actually run the script; it only shaped the static word lists and reference files bundled here. The skill and agent instructions direct Claude's behavior when the plugin is active; they do not by themselves transmit any information beyond Claude's normal operation.
+
+## Sourced Saudi correspondence conventions (v1.5.0)
+
+`references/saudi-official-correspondence.md` is drawn from a single citable source — "دليل المراسلات الكتابية" (Official Correspondence Manual, 1440H), Saudi Ministry of Finance — rather than general knowledge like the rest of `regional-conventions.md`. It documents that one ministry's real rank-based closing formulas, date format, and numeral convention, and explicitly corrects an earlier general assumption in this project about Gulf numeral conventions (see that file for detail). It represents one ministry's internal standard, not a verified pan-Saudi or pan-Gulf legal standard.
+
+## Robustness testing, not a security audit (v1.6.0)
+
+`register_check.py` was stress-tested against edge-case inputs (empty strings, pure non-Arabic text, null/control characters, RTL/LTR mark characters, emoji, very long unbroken strings, mixed scripts) — no crashes were found, and one real usability bug was found and fixed (non-Arabic input previously produced a spammy wall of near-duplicate flags instead of a clear signal; now deduplicated, capped, and paired with an overall Arabic-content-ratio warning). This is targeted robustness testing, not a formal security audit or adversarial fuzzing campaign — see the README "Security" section for exactly what has and hasn't been tested.
 
 ## Attribution
 
@@ -71,3 +79,11 @@ Built by Karim ([@Wooinxlkz](https://github.com/Wooinxlkz)) as an independent, o
 ## Feedback and corrections
 
 If you're a native speaker of any covered region and notice something inaccurate in the regional conventions, dialect lists, or templates, corrections are genuinely welcome — this is exactly the kind of detail that's easy to get subtly wrong from outside a specific regional context, and the project is better for being checked against real native usage.
+
+## Known open issues
+
+- **No native-speaker review of generated output has happened yet.** Everything has been validated against corpus statistics, cited government documents, or general knowledge — never against a native speaker reading a real generated letter/CV and confirming it sounds natural. This is the single largest open gap in the project.
+- **Most dialect terms remain family-level, not country-level.** Only Maghrebi (partially: Algeria/Tunisia/Morocco) and Sudanese have real country-specific verification. Gulf and Levantine terms are tagged at the family level only — no open, structured per-country dataset was found for those (see "Investigated and explicitly declined," `CHANGELOG.md` v1.5.0).
+- **Only Saudi Arabia has a sourced, government-cited convention file.** Every other country's conventions in `regional-conventions.md` remain general-knowledge summaries.
+- **No fuzzing/adversarial security testing**, only targeted robustness checks — see README "Security."
+

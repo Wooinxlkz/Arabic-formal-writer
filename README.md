@@ -41,7 +41,7 @@ arabic-formal-writer/
 │   ├── fixtures/
 │   │   ├── good_letter.txt
 │   │   └── flawed_letter.txt
-│   └── run_tests.py                     # 22 assertions, all passing
+│   └── run_tests.py                     # behavioral test suite — see Testing section for current count
 ├── LICENSE
 ├── NOTICE.md
 ├── CONTRIBUTING.md
@@ -67,7 +67,8 @@ A dependency-free Python 3 script (standard library only) that checks a draft fo
 - **Common hamza errors** — a curated high-confidence list (kept short deliberately to limit false positives)
 - **Missing subject line / closing formula** for letter-type documents
 - **Sentence-rhythm outliers** — both "too choppy" (translated-feeling) and true run-ons
-- **Untransliterated Latin-script leakage** without technical justification
+- **Untransliterated Latin-script leakage** without technical justification, deduplicated and capped so heavily non-Arabic text produces a clear signal instead of dozens of repetitive flags
+- **Overall Arabic-content ratio** — warns clearly when a document is overwhelmingly non-Arabic, so the rest of the report isn't misread as a meaningful review of text the tool wasn't designed for
 
 It's a heuristic linter, not a grammar engine — false positives are expected and fine (they're meant to be reviewed, by you or the `arabic-document-reviewer` agent), but the specific patterns it targets are tested and verified working.
 
@@ -102,7 +103,7 @@ The `skills/arabic-formal-writing/` directory is a standalone Agent Skill and ca
 ## Testing
 
 ```bash
-python3 tests/run_tests.py            # 26 behavioral assertions against sample documents
+python3 tests/run_tests.py            # 32 behavioral assertions against sample documents
 python3 tests/validate_wordlists.py   # 11 static consistency checks on the word-list data itself
 ```
 
@@ -110,14 +111,23 @@ python3 tests/validate_wordlists.py   # 11 static consistency checks on the word
 
 ## Validation status
 
-As of v1.4.0, `DIALECT_TERMS` covers 63 terms across 6 families (Egyptian, Sudanese, Gulf, Levantine, Maghrebi, informal-chat), all cross-checked against CAMeL Lab's open Arabic frequency corpora (real Dialectal-Arabic vs. MSA word frequencies) — see `NOTICE.md` for the full methodology, including terms that were tested and *rejected* for looking plausible but showing weak/negative dialectal signal (a real, recurring failure mode: several common-sounding words turn out to be legitimate MSA homographs). That check has found and fixed one real bug (a term that contradicted this project's own recommended letter closing) and shaped every addition since. This is real progress on accuracy, not just process — but it is not the same as native-speaker review, which still hasn't happened. See `NOTICE.md` for exactly what is and isn't verified.
+As of v1.6.0, `DIALECT_TERMS` covers 63 terms across 6 families (Egyptian, Sudanese, Gulf, Levantine, Maghrebi, informal-chat), all cross-checked against CAMeL Lab's open Arabic frequency corpora (real Dialectal-Arabic vs. MSA word frequencies) — see `NOTICE.md` for the full methodology, including terms that were tested and *rejected* for looking plausible but showing weak/negative dialectal signal (a real, recurring failure mode: several common-sounding words turn out to be legitimate MSA homographs). That check has found and fixed one real bug (a term that contradicted this project's own recommended letter closing), plus one real government-sourced convention file for Saudi correspondence and a robustness-hardening pass (deduplicated flag spam, low-Arabic-content detection). This is real progress on accuracy and reliability, not just process — but it is not the same as native-speaker review, which still hasn't happened. See `NOTICE.md` for exactly what is and isn't verified.
 
 ## Limitations — read this before relying on it
 
 - **Not a certified translation or legal tool.** Contracts drafted with this skill always include a disclaimer to have a licensed lawyer review anything with legal weight — see `NOTICE.md`.
 - **The dialect/hamza word lists are curated, not exhaustive.** They cover well-documented, high-frequency patterns — they will not catch everything, and they are not a substitute for a native reviewer's judgment on a document that actually matters (an official government submission, a legal filing).
 - **Regional convention data is a simplification.** Real usage varies by institution, era, and individual style within every region listed. Treat `regional-conventions.md` as a well-reasoned default, not a formal specification.
-- **No network calls, no external data sources.** Everything here is static reference material and a local script — there's no live dialect-detection model or API behind this.
+- **The shipped script makes no network calls at runtime** — `register_check.py` runs entirely locally against whatever text you give it, no API keys, no telemetry. This is separate from how its data was *validated during development*, which did use external sources (CAMeL Lab corpora, a Moroccan Darija dataset, a Saudi government PDF) — see `NOTICE.md` "Recommended sources" and "Validation performed" for exactly what was consulted and when. None of that is called at runtime; it informed the static word lists shipped in the file.
+- **No native-speaker review has happened.** Every claim in this project has been checked against corpus statistics, cited government documents, or general knowledge — never against a native speaker reading real generated output and confirming it sounds right. This is the single biggest open gap; see `NOTICE.md` "Feedback and corrections."
+
+## Security
+
+- No `eval`, `exec`, shell commands, or dynamic code execution anywhere in `register_check.py` — it's regex and dict lookups against the text you pass it.
+- No network calls, no file writes outside what you explicitly redirect via shell (`>`), no telemetry.
+- Stress-tested (v1.6.0) against empty input, pure non-Arabic text, null/control characters, RTL/LTR mark characters, emoji, and a 5000-character single word with no spaces — no crashes found. This is not a formal security audit; it's targeted robustness testing against inputs a normal user might accidentally pass in.
+- Not tested against adversarially crafted pathological input designed to trigger regex catastrophic backtracking (ReDoS) on very large inputs — the regex patterns used are simple (literal escapes, basic character classes) and not the nested-quantifier shapes typically associated with ReDoS, but this hasn't been specifically fuzzed.
+- The script reads whatever file path you give it via the CLI (or stdin) — it does no path validation or sandboxing, same as any standard command-line tool. Don't run it against untrusted file paths in an automated pipeline without your own path validation.
 
 ## License
 
@@ -129,4 +139,4 @@ See `CONTRIBUTING.md`. Short version: this is most improvable by native speakers
 
 ## Changelog
 
-See `CHANGELOG.md`. Currently v1.1.0.
+See `CHANGELOG.md`. Currently v1.6.0.
